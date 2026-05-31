@@ -139,31 +139,6 @@ def process_payment_lifecycle(payload: PaymentCreate, db: Session) -> Payment:
         )
 
 
-# List Payments — paginated, newest first
-@router.get("/", response_model=List[PaymentResponse])
-async def get_payments(
-    db: Session = Depends(get_db),
-    limit: int = Query(50, ge=1, le=100, description="Max records per page (1-100)."),
-    offset: int = Query(0, ge=0, description="Number of records to skip."),
-):
-    """List payments (paginated, newest first)."""
-    request_id_ctx.set(uuid.uuid4().hex[:8])
-    try:
-        payments = (
-            db.query(Payment)
-              .order_by(Payment.created_at.desc())
-              .offset(offset)
-              .limit(limit)
-              .all()
-        )
-        logger.info(f"payment.list_returned count={len(payments)} limit={limit} offset={offset}")
-        return [PaymentResponse.model_validate(payment) for payment in payments]
-    except Exception:
-        logger.exception(f"payment.list_failed limit={limit} offset={offset}")
-        db.rollback()
-        raise HTTPException(status_code=500, detail="Internal server error")
-
-
 # Get Payment by id — GET /payments/{payment_id} per spec
 @router.get("/{payment_id}", response_model=PaymentResponse)
 async def get_payment(payment_id: UUID, db: Session = Depends(get_db)):

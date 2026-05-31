@@ -1,28 +1,22 @@
 version: '3.8'
 
-services:
-  # 1. FastAPI Application
-  # 1. FastAPI Application
+services: 
   web:
     build: .
     ports:
-      - "8000:8000"
-    # 1. This links your Windows folder directly into the container live
+      - "8000:8000" 
     volumes:
       - .:/app
     environment:
       - DATABASE_URL=postgresql+psycopg://postgres:password@db:5432/payments_db
       - REDIS_URL=redis://redis:6379/0
       - PYTHONUNBUFFERED=1
-      - LOKI_URL=http://loki:3100/loki/api/v1/push
-    # 2. This overrides the default Dockerfile command to turn on reload
-    # command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+      - LOKI_URL=http://loki:3100/loki/api/v1/push 
     command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
     depends_on:
       - db
       - redis
-
-  # 2. PostgreSQL Relational Storage
+ 
   db:
     image: postgres:15-alpine
     environment:
@@ -33,21 +27,18 @@ services:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-
-  # 3. Redis Idempotency Cache (Now Grouped!)
+ 
   redis:
     image: redis:7-alpine
     ports:
       - "6379:6379"
-
-  # 4. Grafana Loki (Log Database)
+ 
   loki:
     image: grafana/loki:2.9.0
     ports:
       - "3100:3100"
     command: -config.file=/etc/loki/local-config.yaml
-
-  # 5. Grafana Alloy (The Log Shipper Daemon)
+ 
   alloy:
     image: grafana/alloy:latest
     user: root
@@ -59,8 +50,7 @@ services:
     command: run --server.http.listen-addr=0.0.0.0:12345 /etc/alloy/config.alloy
     depends_on:
       - loki
-
-  # 6. Grafana UI Dashboard Cockpit
+ 
   grafana:
     image: grafana/grafana:10.2.0
     ports:
