@@ -1,0 +1,1 @@
+docker run --name payments-redis -d -p 6379:6379 redis:7-alpine
